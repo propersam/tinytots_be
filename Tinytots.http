@@ -1,0 +1,8 @@
+
+@Tinytots_HostAddress = http://localhost:5215
+
+GET {{Tinytots_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###
+
