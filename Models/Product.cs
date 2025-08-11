@@ -15,4 +15,6 @@ public class Product
     
     public string? OutOfStock { get; set; }
     public decimal? Price { get; set; }
+    
+    public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
 }

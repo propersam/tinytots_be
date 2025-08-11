@@ -19,17 +19,3 @@ public class TinytotsDbContext : Microsoft.EntityFrameworkCore.DbContext
     public DbSet<Invoice>  Invoices { get; set; }
     
 }
-
-// ADD THIS FACTORY CLASS
-public class TinytotsDbContextFactory : IDesignTimeDbContextFactory<TinytotsDbContext>
-{
-    public TinytotsDbContext CreateDbContext(string[] args)
-    {
-        var optionsBuilder = new DbContextOptionsBuilder<TinytotsDbContext>();
-        
-        // Use your connection string here
-        optionsBuilder.UseMySql("Server=localhost;Database=TinytotsDB;Trusted_Connection=true;TrustServerCertificate=true;Connection Timeout=60;");
-        
-        return new TinytotsDbContext(optionsBuilder.Options);
-    }
-}
