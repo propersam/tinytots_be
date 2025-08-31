@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Tinytots.DbContext;
 
@@ -11,9 +12,11 @@ using Tinytots.DbContext;
 namespace Tinytots.Migrations
 {
     [DbContext(typeof(TinytotsDbContext))]
-    partial class TinytotsDbContextModelSnapshot : ModelSnapshot
+    [Migration("20250831152135_CorrectedMigration")]
+    partial class CorrectedMigration
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
