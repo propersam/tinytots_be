@@ -6,19 +6,13 @@ namespace Tinytots.Models;
 
 public class Product
 {
-     public int Id { get; set; }
-    [Required(ErrorMessage = "Product name is required"), MaxLength (25)] 
-    public string? Name { get; set; }
-    public GenderEnum Gender { get; set; }
-    [Required] public AgeGroupEnum AgeGroup { get; set; }
-    
-    public int CategoryId { get; set; }
-    public Category? Category { get; set; }
+    [Key] public int ProductId { get; set; }
+    [MaxLength (25)] public required string Name { get; set; }
     
     public int SubCategoryId { get; set; }
-    public SubCategory? SubCategory { get; set; }
-
-    [Required] public bool OutOfStock { get; set; }
-    [Required, Precision (10, 2)]  public decimal Price { get; set; }
-    public DateTime CreatedAt { get; init; } 
+    public SubCategory SubCategory { get; set; } = null!;
+    [Required] public int Quantity { get; set; }
+    [Required, Precision(10, 2)] public decimal UnitPrice { get; set; } = 0;
+    
+    public DateTime CreatedAt { get; init; } = DateTime.UtcNow;
 }

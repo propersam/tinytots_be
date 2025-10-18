@@ -1,8 +1,9 @@
-namespace Tinytots.Enums;
-
-public enum AgeGroupEnum
+namespace Tinytots.Enums
 {
-    Toddler,
-    Age4to6,
-    Age7to9
+    public enum AgeGroupEnum
+    {
+        Toddler,
+        Age4To6,
+        Age7To9
+    }
 }

@@ -1,20 +1,20 @@
 using System.ComponentModel.DataAnnotations;
 using Microsoft.EntityFrameworkCore;
 using Tinytots.Enums;
+using Tinytots.Services;
 
 namespace Tinytots.Models;
 
 public class Invoice
 { 
-    public int Id { get; set; }
+    [Key] public int InvId { get; init; }
+
+    [MaxLength(20)] public string InvCode { get; set; } = null!;
     
-    [MaxLength(Int32.MaxValue)]
-    public string? Code { get; set; }
-    
-    [Precision(9,2)] 
-    public decimal Price { get; set; } 
+    [Precision(20,2)] 
+    public decimal InvoiceBill { get; init; } 
     public StatusEnum Status { get; set; }
     
-    public DateTimeOffset CreatedAt { get; init; }
-    
+    public ICollection<Order> Orders { get; set; } = new List<Order>();
+    public DateTimeOffset CreatedAt  = DateTimeOffset.UtcNow;
 }

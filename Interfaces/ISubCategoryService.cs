@@ -8,5 +8,5 @@ public interface ISubCategoryService
     Task<SubCategory> CreateSubCategory(SubCategory subCategory);
     Task<SubCategory> GetSubCategoryByName(string name);
     Task<SubCategory> UpdateSubCategory(SubCategory subCategory);
-    Task<bool> DeleteSubCategoryByName(string name);
+    Task<bool > DeleteSubCategoryByName(string name);
 }

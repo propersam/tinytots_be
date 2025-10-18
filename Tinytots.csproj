@@ -21,4 +21,26 @@
         <PackageReference Include="Swashbuckle.AspNetCore" Version="6.6.2"/>
     </ItemGroup>
 
+    <ItemGroup>
+      <_ContentIncludedByDefault Remove="Frontend\bin\Debug\net8.0\Tinytots.Frontend.staticwebassets.runtime.json" />
+      <_ContentIncludedByDefault Remove="Frontend\bin\Debug\net8.0\wwwroot\_framework\blazor.boot.json" />
+      <_ContentIncludedByDefault Remove="Frontend\obj\Debug\net8.0\blazor.boot.json" />
+      <_ContentIncludedByDefault Remove="Frontend\obj\Debug\net8.0\blazor.build.boot-extension.json" />
+      <_ContentIncludedByDefault Remove="Frontend\obj\Debug\net8.0\staticwebassets.build.json" />
+      <_ContentIncludedByDefault Remove="Frontend\obj\Debug\net8.0\staticwebassets.development.json" />
+      <_ContentIncludedByDefault Remove="Frontend\obj\Debug\net8.0\staticwebassets.pack.json" />
+      <_ContentIncludedByDefault Remove="Frontend\obj\Debug\net8.0\Tinytots.Frontend.sourcelink.json" />
+      <_ContentIncludedByDefault Remove="Frontend\obj\project.assets.json" />
+      <_ContentIncludedByDefault Remove="Frontend\obj\Tinytots.Frontend.csproj.nuget.dgspec.json" />
+      <_ContentIncludedByDefault Remove="Frontend\Properties\launchSettings.json" />
+      <_ContentIncludedByDefault Remove="Frontend\wwwroot\sample-data\weather.json" />
+      <_ContentIncludedByDefault Remove="Frontend\App.razor" />
+      <_ContentIncludedByDefault Remove="Frontend\Layout\MainLayout.razor" />
+      <_ContentIncludedByDefault Remove="Frontend\Layout\NavMenu.razor" />
+      <_ContentIncludedByDefault Remove="Frontend\Pages\Counter.razor" />
+      <_ContentIncludedByDefault Remove="Frontend\Pages\Home.razor" />
+      <_ContentIncludedByDefault Remove="Frontend\Pages\Weather.razor" />
+      <_ContentIncludedByDefault Remove="Frontend\_Imports.razor" />
+    </ItemGroup>
+
 </Project>

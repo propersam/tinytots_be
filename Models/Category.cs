@@ -3,12 +3,11 @@ using System.ComponentModel.DataAnnotations;
 namespace Tinytots.Models;
 
 public class Category
-{
-    public int Id { get; set; }
-   [Required, MaxLength(20)] 
-   public string? CatName { get; set; }
+{ 
+   [Key] public int CategoryId { get; set; }
    
-   public ICollection<Product>? Products { get; set; } 
+   [MaxLength(20)] 
+   public required string Name { get; set; }
 
-   public ICollection<SubCategory>? SubCategories { get; set; }
-}
+    public ICollection<SubCategory>? SubCategory { get; set; }
+} 
