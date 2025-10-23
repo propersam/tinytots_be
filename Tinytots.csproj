@@ -4,7 +4,16 @@
         <TargetFramework>net8.0</TargetFramework>
         <Nullable>enable</Nullable>
         <ImplicitUsings>enable</ImplicitUsings>
+        <EnforceCodeStyleInBuild>true</EnforceCodeStyleInBuild>
+        <EnableNETAnalyzers>true</EnableNETAnalyzers>
+        <AnalysisLevel>latest</AnalysisLevel>
     </PropertyGroup>
+
+    <!-- Auto-format code before build -->
+    <Target Name="FormatCode" BeforeTargets="BeforeBuild">
+        <Exec Command="dotnet tool restore" ContinueOnError="true" />
+        <Exec Command="dotnet format --no-restore --verbosity quiet" ContinueOnError="true" />
+    </Target>
 
     <ItemGroup>
         <PackageReference Include="Microsoft.AspNetCore.OpenApi" Version="8.0.16"/>

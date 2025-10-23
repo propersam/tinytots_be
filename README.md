@@ -8,6 +8,7 @@ A comprehensive ASP.NET Core 8.0 Web API for managing a children's product e-com
 - [Tech Stack](#tech-stack)
 - [Project Structure](#project-structure)
 - [Getting Started](#getting-started)
+- [IDE-Specific Setup](#ide-specific-setup)
 - [Database Setup](#database-setup)
 - [API Endpoints](#api-endpoints)
 - [Architecture](#architecture)
@@ -117,22 +118,158 @@ tinytots_be/
 
    Navigate to: `http://localhost:5215/`
 
+## IDE-Specific Setup
+
+This section provides detailed setup instructions for different IDEs. Choose the section that matches your preferred development environment.
+
+### Visual Studio 2022 Setup
+
+Visual Studio is Microsoft's full-featured IDE with excellent .NET support and integrated tools.
+
+1. **Download and Install Visual Studio 2022**
+   - Visit [Visual Studio Downloads](https://visualstudio.microsoft.com/downloads/)
+   - Download "Visual Studio 2022 Community" (free version)
+   - During installation, select the ".NET desktop development" workload
+   - Also select "ASP.NET and web development" workload
+
+2. **Open the Project**
+   - Launch Visual Studio 2022
+   - Click "Open a project or solution"
+   - Navigate to the `tinytots_be` folder and select `Tinytots.csproj`
+   - Alternatively, open the solution file `tinytots.sln` from the root directory
+
+3. **Restore NuGet Packages**
+   - Right-click on the project in Solution Explorer
+   - Select "Restore NuGet Packages"
+   - Or use the menu: Tools → NuGet Package Manager → Restore NuGet Packages
+
+4. **Configure Database Connection**
+   - In Solution Explorer, find `appsettings.Development.json`
+   - Right-click and select "Open"
+   - Update the connection string with your MySQL credentials
+
+5. **Run Database Migrations**
+   - Open Package Manager Console: View → Other Windows → Package Manager Console
+   - Run: `Update-Database`
+
+6. **Run the Application**
+   - Press F5 or click the green "Run" button
+   - The application will start and open your default browser to Swagger UI
+
+**Tips:**
+- Use the Solution Explorer to navigate project files
+- Press Ctrl+K, Ctrl+D to format code
+- Use F12 to go to definition of methods/classes
+- Enable IntelliSense by typing and using Ctrl+Space
+
+### Rider Setup
+
+Rider is JetBrains' cross-platform IDE with powerful refactoring tools and excellent .NET support.
+
+1. **Download and Install Rider**
+   - Visit [JetBrains Rider](https://www.jetbrains.com/rider/)
+   - Download and install Rider (free 30-day trial, or use student license)
+   - Install .NET 8.0 SDK if not already installed
+
+2. **Open the Project**
+   - Launch Rider
+   - Click "Open" and select the `tinytots_be` folder
+   - Rider will automatically detect the .NET project
+
+3. **Restore Dependencies**
+   - Rider will prompt to restore NuGet packages - click "Restore"
+   - Or use: Tools → NuGet → Restore NuGet Packages
+
+4. **Configure Database Connection**
+   - In the Project view, find `appsettings.Development.json`
+   - Open and update the MySQL connection string
+
+5. **Run Database Migrations**
+   - Open Terminal: View → Tool Windows → Terminal
+   - Run: `dotnet ef database update`
+
+6. **Run the Application**
+   - Click the green "Run" button in the toolbar
+   - Or press Shift+F10
+   - Swagger UI will open automatically
+
+**Tips:**
+- Use Ctrl+N to quickly find classes
+- Press Ctrl+B to go to declaration
+- Use Alt+Enter for quick fixes and refactoring suggestions
+- Enable code completion by typing and using Ctrl+Space
+
+### Visual Studio Code Setup
+
+VS Code is a lightweight, extensible editor that's great for .NET development with the right extensions.
+
+1. **Download and Install VS Code**
+   - Visit [VS Code Downloads](https://code.visualstudio.com/download)
+   - Install VS Code for your operating system
+
+2. **Install Required Extensions**
+   - Open VS Code
+   - Click the Extensions icon (square icon on left sidebar)
+   - Install these extensions:
+     - "C#" by Microsoft (provides IntelliSense, debugging, etc.)
+     - "C# Dev Kit" by Microsoft (enhanced .NET development)
+     - ".NET MAUI" by Microsoft (optional, for mobile development)
+     - "NuGet Package Manager" by jmrog
+     - "EditorConfig for VS Code" by EditorConfig
+
+3. **Open the Project Folder**
+   - File → Open Folder
+   - Select the `tinytots_be` folder
+   - VS Code will detect the C# project and prompt to add required assets
+
+4. **Restore Dependencies**
+   - Open integrated terminal: View → Terminal
+   - Run: `dotnet restore`
+
+5. **Configure Database Connection**
+   - Open `appsettings.Development.json`
+   - Update the MySQL connection string with your credentials
+
+6. **Run Database Migrations**
+   - In terminal: `dotnet ef database update`
+
+7. **Run the Application**
+   - In terminal: `dotnet run`
+   - Or press F5 to debug
+   - Open browser to `http://localhost:5215` for Swagger
+
+**Tips:**
+- Use Ctrl+Shift+P to open command palette
+- Press F12 to go to definition
+- Use Ctrl+. for quick actions and refactoring
+- Install "Prettier" extension for code formatting
+- Use integrated terminal for running commands
+
+### Common Setup Steps for All IDEs
+
+After completing IDE-specific setup:
+
+1. **Verify Database Connection**
+   - Check that MySQL is running
+   - Test connection by running the app and checking logs
+
+2. **Test the API**
+   - Open Swagger UI at `http://localhost:5215`
+   - Try the GET endpoints first (Categories, Products, etc.)
+   - Create test data using POST endpoints
+
+3. **Debugging Tips**
+   - Set breakpoints by clicking in the left margin of code
+   - Use F5 to start debugging
+   - Watch variables in the debug panel
+   - Check console output for errors
+
+4. **Version Control**
+   - Use Git integration in your IDE
+   - Commit changes regularly
+   - Pull latest changes before starting work
+
 ## Database Setup
-
-### Initial Migration
-
-If you need to create migrations from scratch:
-
-```bash
-# Remove old migrations
-rm -rf Migrations/
-
-# Create new migration
-dotnet ef migrations add InitialCreate
-
-# Apply to database
-dotnet ef database update
-```
 
 ### Database Schema
 
@@ -338,6 +475,47 @@ dotnet ef database update
   - 404 Not Found - Resource not found
   - 409 Conflict - Duplicate resource
   - 500 Internal Server Error - Unexpected errors
+
+### Code Formatting
+
+This project uses **dotnet-format** with automated code formatting on every build. The formatting rules are defined in `.editorconfig`.
+
+**Automatic Formatting:**
+- Code is automatically formatted when you run `dotnet build`
+- Format is enforced before compilation starts
+- Ensures consistent code style across the entire project
+
+**Manual Formatting Commands:**
+
+```bash
+# Format all code files
+dotnet format
+
+# Check if files need formatting (without making changes)
+dotnet format --verify-no-changes
+
+# Format with detailed output
+dotnet format --verbosity diagnostic
+```
+
+**Formatting Rules (from .editorconfig):**
+
+1. **Indentation**: 4 spaces for C# files
+2. **Naming Conventions**:
+   - Interfaces: Start with `I` (e.g., `IProductService`)
+   - Classes/Methods: PascalCase (e.g., `ProductController`)
+   - Private fields: Start with underscore (e.g., `_context`)
+3. **Braces**: Always use braces, even for single-line blocks
+4. **var keyword**: Use for built-in types only when type is apparent
+5. **Using directives**: System namespaces first, alphabetically sorted
+6. **Whitespace**: Specific rules for spacing around operators and keywords
+
+**IDE Integration:**
+
+Most IDEs will automatically pick up the `.editorconfig` file:
+- **Visual Studio**: Automatic
+- **VS Code**: Install "EditorConfig for VS Code" extension
+- **Rider**: Automatic
 
 ## Testing
 

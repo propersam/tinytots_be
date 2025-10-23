@@ -14,7 +14,7 @@ namespace Tinytots.Controllers
     {
         private readonly TinytotsDbContext _context;
 
-       public CategoryController(TinytotsDbContext context)
+        public CategoryController(TinytotsDbContext context)
         {
             _context = context;
         }
@@ -24,7 +24,7 @@ namespace Tinytots.Controllers
         {
             try
             {
-                var categories = await _context.Categories
+                List<Category> categories = await _context.Categories
                     .Include(c => c.SubCategory)
                     .ToListAsync();
                 return Ok(categories);
@@ -41,7 +41,7 @@ namespace Tinytots.Controllers
         {
             try
             {
-                var category = await _context.Categories
+                Category? category = await _context.Categories
                     .Include(c => c.SubCategory)
                     .FirstOrDefaultAsync(c => c.CategoryId == id);
 
@@ -69,14 +69,14 @@ namespace Tinytots.Controllers
             try
             {
                 Regex regex = new Regex(@"^[a-zA-Z0-9 ]*$");
-                var exists = await _context.Categories.AnyAsync(c => c.Name.ToLower() == category.Name.ToLower());
+                bool exists = await _context.Categories.AnyAsync(c => c.Name.ToLower() == category.Name.ToLower());
                 if (exists)
                 {
                     return BadRequest("A Category with the same name already exists.");
                 }
-                
+
                 await _context.Categories.AddAsync(category);
-                var req = await _context.SaveChangesAsync();
+                int req = await _context.SaveChangesAsync();
                 if (req > 0)
                 {
                     return CreatedAtAction(nameof(GetCategoryById),
@@ -104,14 +104,14 @@ namespace Tinytots.Controllers
 
             try
             {
-                var existingCategory = await _context.Categories.FindAsync(id);
+                Category? existingCategory = await _context.Categories.FindAsync(id);
                 if (existingCategory == null)
                 {
                     return NotFound($"Category with Id {id} was not found");
                 }
 
                 // Check if new name conflicts with existing category
-                var nameExists = await _context.Categories
+                bool nameExists = await _context.Categories
                     .AnyAsync(c => c.Name.ToLower() == categoryDto.Name.ToLower() && c.CategoryId != id);
 
                 if (nameExists)
@@ -120,7 +120,7 @@ namespace Tinytots.Controllers
                 }
 
                 existingCategory.Name = categoryDto.Name;
-                var req = await _context.SaveChangesAsync();
+                int req = await _context.SaveChangesAsync();
 
                 if (req > 0)
                 {
@@ -145,7 +145,7 @@ namespace Tinytots.Controllers
         {
             try
             {
-                var category = await _context.Categories
+                Category? category = await _context.Categories
                     .Include(c => c.SubCategory)
                     .FirstOrDefaultAsync(c => c.CategoryId == id);
 
@@ -161,7 +161,7 @@ namespace Tinytots.Controllers
                 }
 
                 _context.Categories.Remove(category);
-                var req = await _context.SaveChangesAsync();
+                int req = await _context.SaveChangesAsync();
 
                 if (req > 0)
                 {
@@ -181,12 +181,12 @@ namespace Tinytots.Controllers
 }
 
 
-    
-    
-    
-    
-    
-    
-    
-    
-    
+
+
+
+
+
+
+
+
+

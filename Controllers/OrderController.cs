@@ -7,12 +7,12 @@ using Tinytots.Models;
 
 
 namespace Tinytots.Controllers
- {
+{
     [ApiController]
     [Route("api/[controller]")]
     public class OrderController : ControllerBase
     {
-        private readonly TinytotsDbContext  _context;
+        private readonly TinytotsDbContext _context;
 
         public OrderController(TinytotsDbContext context)
         {
@@ -24,7 +24,7 @@ namespace Tinytots.Controllers
         {
             try
             {
-                var orders = await _context.Orders
+                List<Order> orders = await _context.Orders
                     .Include(o => o.Product)
                     .Include(o => o.Invoice)
                     .ToListAsync();
@@ -43,7 +43,7 @@ namespace Tinytots.Controllers
         {
             try
             {
-                var order = await _context.Orders
+                Order? order = await _context.Orders
                     .Include(o => o.Product)
                     .FirstOrDefaultAsync(o => o.OrderId == id);
 
@@ -66,16 +66,16 @@ namespace Tinytots.Controllers
         {
             try
             {
-                var product = await _context.Products.FindAsync(order.ProductId);
+                Product? product = await _context.Products.FindAsync(order.ProductId);
 
                 if (product == null)
                 {
                     return NotFound($"Product with Id {order.ProductId} not found");
                 }
 
-                var newOrder = new Order().CreateOrder(product, order.Quantity);
+                Order newOrder = new Order().CreateOrder(product, order.Quantity);
                 await _context.Orders.AddAsync(newOrder);
-                var req = await _context.SaveChangesAsync();
+                int req = await _context.SaveChangesAsync();
 
                 if (req > 0)
                 {
@@ -107,7 +107,7 @@ namespace Tinytots.Controllers
 
             try
             {
-                var order = await _context.Orders
+                Order? order = await _context.Orders
                     .Include(o => o.Product)
                     .FirstOrDefaultAsync(o => o.OrderId == id);
 
@@ -120,7 +120,7 @@ namespace Tinytots.Controllers
                 order.Quantity = orderUpdate.Quantity;
                 order.LinePrice = orderUpdate.Quantity * order.UnitPrice;
 
-                var req = await _context.SaveChangesAsync();
+                int req = await _context.SaveChangesAsync();
                 if (req > 0)
                 {
                     return Ok(new
@@ -144,7 +144,7 @@ namespace Tinytots.Controllers
         {
             try
             {
-                var order = await _context.Orders.FindAsync(id);
+                Order? order = await _context.Orders.FindAsync(id);
 
                 if (order == null)
                 {
@@ -152,7 +152,7 @@ namespace Tinytots.Controllers
                 }
 
                 _context.Orders.Remove(order);
-                var req = await _context.SaveChangesAsync();
+                int req = await _context.SaveChangesAsync();
 
                 if (req > 0)
                 {

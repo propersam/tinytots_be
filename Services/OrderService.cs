@@ -5,12 +5,12 @@ using Tinytots.DbContext;
 using Tinytots.DTO;
 using Tinytots.Enums;
 using Tinytots.Models;
- 
+
 
 namespace Tinytots.Services;
 
 public class OrderService
- {
+{
     private readonly TinytotsDbContext _context;
 
     public OrderService(TinytotsDbContext context)
@@ -40,11 +40,11 @@ public class OrderService
 
         do
         {
-            var today = DateTime.Now.ToString("yyyyMMdd");
-            var randomNum = RandomNumberGenerator.GetInt32(100, 100000).ToString("D5");
+            string today = DateTime.Now.ToString("yyyyMMdd");
+            string randomNum = RandomNumberGenerator.GetInt32(100, 100000).ToString("D5");
             code = $"TTINV-{today}-{randomNum}";
             exists = await _context.Invoices.AnyAsync(i => i.InvCode == code);
-        } 
+        }
         while (exists);
 
         return code;
@@ -52,10 +52,10 @@ public class OrderService
 
 
 }
-    
-    
-   
-    
-    
-    
-    
+
+
+
+
+
+
+

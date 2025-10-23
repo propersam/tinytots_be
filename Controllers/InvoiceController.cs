@@ -7,7 +7,7 @@ using Tinytots.Enums;
 using Tinytots.Models;
 
 namespace Tinytots.Controllers
- {
+{
     [ApiController]
     [Route("api/[controller]")]
     public class InvoiceController : ControllerBase
@@ -24,7 +24,7 @@ namespace Tinytots.Controllers
         {
             try
             {
-                var invoices = await _context.Invoices
+                List<Invoice> invoices = await _context.Invoices
                     .Include(i => i.Orders)
                         .ThenInclude(o => o.Product)
                     .ToListAsync();
@@ -43,7 +43,7 @@ namespace Tinytots.Controllers
         {
             try
             {
-                var invoice = await _context.Invoices
+                Invoice? invoice = await _context.Invoices
                     .Include(i => i.Orders)
                         .ThenInclude(o => o.Product)
                     .FirstOrDefaultAsync(i => i.InvId == id);
@@ -81,15 +81,15 @@ namespace Tinytots.Controllers
                 decimal totalBill = 0;
 
                 // Process each order item
-                foreach (var item in invoiceDto.Items)
+                foreach (OrderCreateDTO item in invoiceDto.Items)
                 {
-                    var product = await _context.Products.FindAsync(item.ProductId);
+                    Product? product = await _context.Products.FindAsync(item.ProductId);
                     if (product == null)
                     {
                         return NotFound($"Product with Id {item.ProductId} was not found");
                     }
 
-                    var order = new Order().CreateOrder(product, item.Quantity);
+                    Order order = new Order().CreateOrder(product, item.Quantity);
                     orders.Add(order);
                     totalBill += order.LinePrice;
                 }
@@ -107,7 +107,7 @@ namespace Tinytots.Controllers
                 };
 
                 await _context.Invoices.AddAsync(invoice);
-                var req = await _context.SaveChangesAsync();
+                int req = await _context.SaveChangesAsync();
 
                 if (req > 0)
                 {
@@ -134,7 +134,7 @@ namespace Tinytots.Controllers
         {
             try
             {
-                var invoice = await _context.Invoices.FindAsync(id);
+                Invoice? invoice = await _context.Invoices.FindAsync(id);
 
                 if (invoice == null)
                 {
@@ -142,7 +142,7 @@ namespace Tinytots.Controllers
                 }
 
                 invoice.Status = status;
-                var req = await _context.SaveChangesAsync();
+                int req = await _context.SaveChangesAsync();
 
                 if (req > 0)
                 {
@@ -167,7 +167,7 @@ namespace Tinytots.Controllers
         {
             try
             {
-                var invoice = await _context.Invoices
+                Invoice? invoice = await _context.Invoices
                     .Include(i => i.Orders)
                     .FirstOrDefaultAsync(i => i.InvId == id);
 
@@ -177,7 +177,7 @@ namespace Tinytots.Controllers
                 }
 
                 _context.Invoices.Remove(invoice);
-                var req = await _context.SaveChangesAsync();
+                int req = await _context.SaveChangesAsync();
 
                 if (req > 0)
                 {
@@ -200,8 +200,8 @@ namespace Tinytots.Controllers
 
             do
             {
-                var today = DateTime.Now.ToString("yyyyMMdd");
-                var randomNum = RandomNumberGenerator.GetInt32(100, 100000).ToString("D5");
+                string today = DateTime.Now.ToString("yyyyMMdd");
+                string randomNum = RandomNumberGenerator.GetInt32(100, 100000).ToString("D5");
                 code = $"TTINV-{today}-{randomNum}";
                 exists = await _context.Invoices.AnyAsync(i => i.InvCode == code);
             }
@@ -210,4 +210,4 @@ namespace Tinytots.Controllers
             return code;
         }
     }
- }
+}

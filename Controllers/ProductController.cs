@@ -1,10 +1,10 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using Tinytots.Controllers;
 using Tinytots.DbContext;
 using Tinytots.DTO;
 using Tinytots.Enums;
 using Tinytots.Models;
-using Tinytots.Controllers;
 
 
 namespace Tinytots.Controllers
@@ -15,17 +15,17 @@ namespace Tinytots.Controllers
     public class ProductController : ControllerBase
     {
         private readonly TinytotsDbContext _context;
-       public ProductController(TinytotsDbContext context)
+        public ProductController(TinytotsDbContext context)
         {
             _context = context;
         }
-        
+
         [HttpGet]
         public async Task<IActionResult> GetAllProducts()
         {
             try
             {
-                var products = await _context.Products
+                List<Product> products = await _context.Products
                     .Include(p => p.SubCategory)
                         .ThenInclude(sc => sc.Category)
                     .ToListAsync();
@@ -43,7 +43,7 @@ namespace Tinytots.Controllers
         {
             try
             {
-                var product = await _context.Products
+                Product? product = await _context.Products
                     .Include(p => p.SubCategory)
                         .ThenInclude(sc => sc.Category)
                     .FirstOrDefaultAsync(p => p.ProductId == id);
@@ -72,7 +72,7 @@ namespace Tinytots.Controllers
             try
             {
                 // Check for subcategory - must exist before creating product
-                var subCategory = await _context.SubCategories
+                SubCategory? subCategory = await _context.SubCategories
                     .FirstOrDefaultAsync(sc => sc.Name.ToLower() == addProduct.SubCategoryName.ToLower());
 
                 if (subCategory == null)
@@ -81,7 +81,7 @@ namespace Tinytots.Controllers
                 }
 
                 // Prevent duplicate product names
-                var exists = await _context.Products.AnyAsync(p => p.Name.ToLower() == addProduct.Name.ToLower());
+                bool exists = await _context.Products.AnyAsync(p => p.Name.ToLower() == addProduct.Name.ToLower());
                 if (exists)
                 {
                     return Conflict($"A Product with the Name '{addProduct.Name}' already exists");
@@ -97,7 +97,7 @@ namespace Tinytots.Controllers
                 };
 
                 await _context.Products.AddAsync(product);
-                var req = await _context.SaveChangesAsync();
+                int req = await _context.SaveChangesAsync();
 
                 if (req > 0)
                 {
@@ -125,13 +125,13 @@ namespace Tinytots.Controllers
 
             try
             {
-                var existingProduct = await _context.Products.FindAsync(id);
+                Product? existingProduct = await _context.Products.FindAsync(id);
                 if (existingProduct == null)
                 {
                     return NotFound($"Product with Id {id} was not found");
                 }
 
-                var subCategory = await _context.SubCategories
+                SubCategory? subCategory = await _context.SubCategories
                     .FirstOrDefaultAsync(sc => sc.Name.ToLower() == updatedProduct.SubCategoryName.ToLower());
 
                 if (subCategory == null)
@@ -144,7 +144,7 @@ namespace Tinytots.Controllers
                 existingProduct.UnitPrice = updatedProduct.Price;
                 existingProduct.Quantity = updatedProduct.Quantity;
 
-                var req = await _context.SaveChangesAsync();
+                int req = await _context.SaveChangesAsync();
                 if (req > 0)
                 {
                     return Ok(new
@@ -167,21 +167,21 @@ namespace Tinytots.Controllers
         {
             try
             {
-                var product = await _context.Products.FirstOrDefaultAsync(x => x.ProductId == id);
+                Product? product = await _context.Products.FirstOrDefaultAsync(x => x.ProductId == id);
                 if (product == null)
                 {
                     return NotFound($"Product with ID {id} not found");
                 }
-                
+
                 _context.Products.Remove(product);
-               var req = await _context.SaveChangesAsync() > 0;
-               if (req)
-               {
-                   return Ok($"Product with id {id} deleted successfully");
-               }
-               return StatusCode(400, $"Product with id {id} was not deleted");
+                bool req = await _context.SaveChangesAsync() > 0;
+                if (req)
+                {
+                    return Ok($"Product with id {id} deleted successfully");
+                }
+                return StatusCode(400, $"Product with id {id} was not deleted");
             }
-            
+
             catch (Exception e)
             {
                 Console.WriteLine(e);

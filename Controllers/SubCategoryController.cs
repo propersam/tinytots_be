@@ -11,8 +11,8 @@ namespace Tinytots.Controllers
     public class SubCategoryController : ControllerBase
     {
         private readonly TinytotsDbContext _context;
-        
-       public SubCategoryController(TinytotsDbContext context)
+
+        public SubCategoryController(TinytotsDbContext context)
         {
             _context = context;
         }
@@ -22,7 +22,7 @@ namespace Tinytots.Controllers
         {
             try
             {
-                var subCategories = await _context.SubCategories
+                List<SubCategory> subCategories = await _context.SubCategories
                     .Include(sc => sc.Category)
                     .ToListAsync();
 
@@ -40,7 +40,7 @@ namespace Tinytots.Controllers
         {
             try
             {
-                var subCategory = await _context.SubCategories
+                SubCategory? subCategory = await _context.SubCategories
                     .Include(sc => sc.Category)
                     .FirstOrDefaultAsync(sc => sc.SubCategoryId == id);
 
@@ -58,8 +58,8 @@ namespace Tinytots.Controllers
             }
         }
 
-      [HttpPost]
-      public async Task<IActionResult> CreateSubCategory([FromBody] SubCategoryDTO subCategoryDto)
+        [HttpPost]
+        public async Task<IActionResult> CreateSubCategory([FromBody] SubCategoryDTO subCategoryDto)
         {
             if (!ModelState.IsValid)
             {
@@ -69,7 +69,7 @@ namespace Tinytots.Controllers
             try
             {
                 // Check if category exists
-                var category = await _context.Categories
+                Category? category = await _context.Categories
                     .FirstOrDefaultAsync(c => c.Name.ToLower() == subCategoryDto.CategoryName.ToLower());
 
                 if (category == null)
@@ -78,7 +78,7 @@ namespace Tinytots.Controllers
                 }
 
                 // Check for duplicate subcategory name
-                var exists = await _context.SubCategories
+                bool exists = await _context.SubCategories
                     .AnyAsync(sc => sc.Name.ToLower() == subCategoryDto.Name.ToLower());
 
                 if (exists)
@@ -93,7 +93,7 @@ namespace Tinytots.Controllers
                 };
 
                 await _context.SubCategories.AddAsync(subcategory);
-                var req = await _context.SaveChangesAsync();
+                int req = await _context.SaveChangesAsync();
 
                 if (req > 0)
                 {
@@ -124,14 +124,14 @@ namespace Tinytots.Controllers
             }
             try
             {
-                var existingSubCategory = await _context.SubCategories.FindAsync(id);
+                SubCategory? existingSubCategory = await _context.SubCategories.FindAsync(id);
                 if (existingSubCategory == null)
                 {
                     return NotFound($"SubCategory with Id {id} was not found");
                 }
 
                 existingSubCategory.Name = subCategoryDto.Name;
-                var req = await _context.SaveChangesAsync();
+                int req = await _context.SaveChangesAsync();
 
                 if (req > 0)
                 {
@@ -156,14 +156,14 @@ namespace Tinytots.Controllers
         {
             try
             {
-                
-                var existingSubCategory = await _context.SubCategories.FindAsync(id);
+
+                SubCategory? existingSubCategory = await _context.SubCategories.FindAsync(id);
                 if (existingSubCategory == null)
                 {
                     return NotFound($"SubCategory with id {id} was not found");
                 }
                 _context.SubCategories.Remove(existingSubCategory);
-                var req = await _context.SaveChangesAsync();
+                int req = await _context.SaveChangesAsync();
 
                 if (req > 0)
                 {
@@ -178,9 +178,9 @@ namespace Tinytots.Controllers
                 return StatusCode(500, "An unexpected error occurred while processing your request.");
             }
         }
-        
-        
+
+
     }
 
-    
+
 }
