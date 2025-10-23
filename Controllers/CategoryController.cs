@@ -19,45 +19,46 @@ namespace Tinytots.Controllers
             _context = context;
         }
 
-        [HttpGet("All")]
+        [HttpGet]
         public async Task<IActionResult> GetAllCategories()
         {
             try
             {
-                var req = await _context.Categories.ToListAsync();
-                if (req.Count > 0)
-                {
-                    return Ok(req);
-                }
-                return Ok("[]");
+                var categories = await _context.Categories
+                    .Include(c => c.SubCategory)
+                    .ToListAsync();
+                return Ok(categories);
             }
             catch (Exception e)
             {
                 Console.WriteLine(e);
-                throw;
+                return StatusCode(500, "An unexpected error occurred while processing your request.");
             }
         }
 
-        [HttpGet("Get/{id}")]
+        [HttpGet("{id}")]
         public async Task<IActionResult> GetCategoryById(int id)
         {
             try
             {
-                var category = await _context.Categories.FindAsync(id);
+                var category = await _context.Categories
+                    .Include(c => c.SubCategory)
+                    .FirstOrDefaultAsync(c => c.CategoryId == id);
+
                 if (category == null)
                 {
-                    return NotFound("Category not found");
+                    return NotFound($"Category with Id {id} not found");
                 }
                 return Ok(category);
             }
             catch (Exception e)
             {
                 Console.WriteLine(e);
-                throw;
+                return StatusCode(500, "An unexpected error occurred while processing your request.");
             }
         }
-            
-        [HttpPost("Create")]
+
+        [HttpPost]
         public async Task<IActionResult> CreateCategory(Category category)
         {
             if (!ModelState.IsValid)
@@ -78,46 +79,105 @@ namespace Tinytots.Controllers
                 var req = await _context.SaveChangesAsync();
                 if (req > 0)
                 {
-                    return CreatedAtAction(nameof(GetCategoryByName),
-                        new { name = category.Name },
-                        new { Message = $"Category was Successfully Created!", category }
+                    return CreatedAtAction(nameof(GetCategoryById),
+                        new { id = category.CategoryId },
+                        new { Message = "Category created successfully", category }
                     );
                 }
 
-                return BadRequest("A new Category was not created.");
+                return BadRequest("Category was not created");
             }
-
             catch (Exception e)
             {
                 Console.WriteLine(e);
                 return StatusCode(500, "An unexpected error occurred while processing your request.");
-
             }
         }
 
-        [HttpGet("name/{name}")]
-        public async Task<IActionResult> GetCategoryByName(string name)
+        [HttpPatch("{id}")]
+        public async Task<IActionResult> UpdateCategory(int id, CategoryDTO categoryDto)
         {
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
+
             try
             {
-                var product = await _context.Categories
-                    .Where(x => x.Name == name)
-                    .ToListAsync();
-                if (product.Count > 0)
+                var existingCategory = await _context.Categories.FindAsync(id);
+                if (existingCategory == null)
                 {
-                    return Ok(product);
+                    return NotFound($"Category with Id {id} was not found");
                 }
 
-                return NotFound($"The Category with the name..'{name}'..could not be Found.");
+                // Check if new name conflicts with existing category
+                var nameExists = await _context.Categories
+                    .AnyAsync(c => c.Name.ToLower() == categoryDto.Name.ToLower() && c.CategoryId != id);
+
+                if (nameExists)
+                {
+                    return Conflict($"A Category with the name '{categoryDto.Name}' already exists");
+                }
+
+                existingCategory.Name = categoryDto.Name;
+                var req = await _context.SaveChangesAsync();
+
+                if (req > 0)
+                {
+                    return Ok(new
+                    {
+                        Message = "Category updated successfully",
+                        Category = existingCategory
+                    });
+                }
+
+                return BadRequest("Category was not updated");
             }
             catch (Exception e)
             {
                 Console.WriteLine(e);
-                throw;
+                return StatusCode(500, "An unexpected error occurred while processing your request.");
             }
         }
 
-    } 
+        [HttpDelete("{id}")]
+        public async Task<IActionResult> DeleteCategory(int id)
+        {
+            try
+            {
+                var category = await _context.Categories
+                    .Include(c => c.SubCategory)
+                    .FirstOrDefaultAsync(c => c.CategoryId == id);
+
+                if (category == null)
+                {
+                    return NotFound($"Category with Id {id} was not found");
+                }
+
+                // Check if category has associated subcategories
+                if (category.SubCategory != null && category.SubCategory.Count > 0)
+                {
+                    return Conflict($"Cannot delete category '{category.Name}' because it has {category.SubCategory.Count} associated subcategories. Delete the subcategories first.");
+                }
+
+                _context.Categories.Remove(category);
+                var req = await _context.SaveChangesAsync();
+
+                if (req > 0)
+                {
+                    return Ok($"Category '{category.Name}' deleted successfully");
+                }
+
+                return BadRequest($"Category with Id {id} was not deleted");
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine(e);
+                return StatusCode(500, "An unexpected error occurred while processing your request.");
+            }
+        }
+
+    }
 }
 
 

@@ -20,21 +20,16 @@ namespace Tinytots.Controllers
             _context = context;
         }
         
-        [HttpGet("All")]
+        [HttpGet]
         public async Task<IActionResult> GetAllProducts()
         {
             try
             {
-                var allProducts = await _context.Products
-                    .Select(p => new ProductDTO
-                    {
-                        Name = p.Name,
-                        Price = p.UnitPrice,
-                        Quantity = p.Quantity
-                        
-                    } )
+                var products = await _context.Products
+                    .Include(p => p.SubCategory)
+                        .ThenInclude(sc => sc.Category)
                     .ToListAsync();
-                return Ok(allProducts);
+                return Ok(products);
             }
             catch (Exception e)
             {
@@ -43,28 +38,31 @@ namespace Tinytots.Controllers
             }
         }
 
-        [HttpGet("id/{id}")]
+        [HttpGet("{id}")]
         public async Task<IActionResult> GetProductById(int id)
         {
             try
             {
-               var product = await _context.Products.FindAsync(id);
-               
-               if (product == null)
-               {
-                   return NotFound($"Product with Id {id} was not found");
-               }
-               return Ok(product);
+                var product = await _context.Products
+                    .Include(p => p.SubCategory)
+                        .ThenInclude(sc => sc.Category)
+                    .FirstOrDefaultAsync(p => p.ProductId == id);
+
+                if (product == null)
+                {
+                    return NotFound($"Product with Id {id} was not found");
+                }
+                return Ok(product);
             }
             catch (Exception e)
             {
                 Console.WriteLine(e);
-                throw;
+                return StatusCode(500, "An unexpected error occurred while processing your request.");
             }
         }
 
-        [HttpPost("Create")]
-        public async Task<IActionResult> CreateProduct(ProductDTO addProduct, CategoryDTO categoryName )
+        [HttpPost]
+        public async Task<IActionResult> CreateProduct(ProductDTO addProduct)
         {
             if (!ModelState.IsValid)
             {
@@ -73,25 +71,13 @@ namespace Tinytots.Controllers
 
             try
             {
-                // Check for subcategory
+                // Check for subcategory - must exist before creating product
                 var subCategory = await _context.SubCategories
                     .FirstOrDefaultAsync(sc => sc.Name.ToLower() == addProduct.SubCategoryName.ToLower());
 
                 if (subCategory == null)
                 {
-                    var category = await _context.Categories.FirstOrDefaultAsync(c => c.Name.ToLower() == categoryName.Name.ToLower());
-                    
-                    if (category == null)
-                    {
-                        return NotFound($"Category '{categoryName.Name}' does not exist.");
-                    }
-
-                    subCategory = new SubCategory 
-                    { 
-                        Name = addProduct.SubCategoryName,
-                        Category = category
-                    };
-                    await _context.SubCategories.AddAsync(subCategory);
+                    return NotFound($"SubCategory '{addProduct.SubCategoryName}' does not exist. Please create the subcategory first.");
                 }
 
                 // Prevent duplicate product names
@@ -115,14 +101,13 @@ namespace Tinytots.Controllers
 
                 if (req > 0)
                 {
-                       return CreatedAtAction(nameof(GetProductById), 
-                       new { id = product.ProductId },
-                                 new { Message = $"The New Product..'{product.Name}'..has been added successfully!", product}
-                       );
+                    return CreatedAtAction(nameof(GetProductById),
+                        new { id = product.ProductId },
+                        new { Message = "Product created successfully", product }
+                    );
                 }
-                return BadRequest($"The product '{product.Name}' was not added..");
+                return BadRequest("Product was not created");
             }
-            
             catch (Exception e)
             {
                 Console.WriteLine(e);
@@ -130,53 +115,8 @@ namespace Tinytots.Controllers
             }
         }
 
-        [HttpGet("Name/{name}")]
-        public async Task<IActionResult> GetProductByName(string name)
-        {
-            try
-            {
-                var product = await _context.Products
-                    .Where(x => x.Name == name)
-                    .ToListAsync();
-
-                if (product.Count == 0)
-                {
-                    return NotFound($"No products found with the Name '{name}'.");
-                }
-                return Ok(product);
-            }
-            
-            catch (Exception e)
-            {
-                Console.WriteLine(e);
-                return StatusCode(500, "An unexpected error occurred while processing your request.");
-            }
-        }
-
-        [HttpGet("SubCategory/{subCategory}")]
-        public async Task<IActionResult> GetProductWithSubCategory(string subCategory)
-        {
-            try
-            {
-                var product = await _context.Products
-                    .Where(x => x.SubCategory.Name == subCategory)
-                    .ToListAsync();
-                if (product.Count == 0)
-                {
-                    return NotFound($"Cannot filter with this subcategory '{subCategory}'");
-                }
-                return Ok(product);
-            }
-            
-            catch (Exception e)
-            {
-                Console.WriteLine(e);
-                return StatusCode(500, "An unexpected error occurred while processing your request.");
-            }
-        }
-
-        [HttpPatch("Update")]
-        public async Task<IActionResult> UpdateProduct(ProductDTO updatedProduct)
+        [HttpPatch("{id}")]
+        public async Task<IActionResult> UpdateProduct(int id, ProductDTO updatedProduct)
         {
             if (!ModelState.IsValid)
             {
@@ -185,33 +125,36 @@ namespace Tinytots.Controllers
 
             try
             {
-                var existingProduct = await _context.Products.FirstOrDefaultAsync(p => p.Name.ToLower() == updatedProduct.Name.ToLower());
+                var existingProduct = await _context.Products.FindAsync(id);
                 if (existingProduct == null)
                 {
-                    return NotFound($"No Product with ID of {updatedProduct.Name} was found..");
+                    return NotFound($"Product with Id {id} was not found");
                 }
 
                 var subCategory = await _context.SubCategories
                     .FirstOrDefaultAsync(sc => sc.Name.ToLower() == updatedProduct.SubCategoryName.ToLower());
-                
+
                 if (subCategory == null)
                 {
-                    return NotFound("SubCategory does not exist.");
+                    return NotFound($"SubCategory '{updatedProduct.SubCategoryName}' does not exist");
                 }
-                
+
                 existingProduct.Name = updatedProduct.Name;
-                existingProduct.SubCategory = subCategory;
+                existingProduct.SubCategoryId = subCategory.SubCategoryId;
                 existingProduct.UnitPrice = updatedProduct.Price;
                 existingProduct.Quantity = updatedProduct.Quantity;
-                
+
                 var req = await _context.SaveChangesAsync();
                 if (req > 0)
                 {
-                    return Ok($"The Product named {existingProduct.Name} has been updated successfully");
+                    return Ok(new
+                    {
+                        Message = "Product updated successfully",
+                        Product = existingProduct
+                    });
                 }
-                return BadRequest($"No data in the product '{existingProduct.Name}' was changed..");
+                return BadRequest("Product was not updated");
             }
-            
             catch (Exception e)
             {
                 Console.WriteLine(e);
@@ -219,7 +162,7 @@ namespace Tinytots.Controllers
             }
         }
 
-        [HttpDelete("Delete/id/{id}")]
+        [HttpDelete("{id}")]
         public async Task<IActionResult> DeleteProduct(int id)
         {
             try

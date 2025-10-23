@@ -8,9 +8,9 @@ namespace Tinytots.Models;
 public class Order
 {
    [Key] public int OrderId { get; init; }
-   
-    public string OrderCode { get; set; }
-   
+
+    public string OrderCode { get; set; } = string.Empty;
+
     [MaxLength(20)]
     public string Name { get; set; } = null!;
     
@@ -24,25 +24,16 @@ public class Order
     [Precision(20,2)]
     public decimal LinePrice { get; set; }  
     
-    public decimal Bill { get; set; }
-    
     public DateTimeOffset CreatedAt  = DateTimeOffset.UtcNow;
-    
-    public List<Order> Orders { get; set; } = new();
-    
+
+    public int? InvoiceId { get; set; }
+    public Invoice? Invoice { get; set; }
+
     public string UniqueOrderCode()
     {
-        string code;
-        bool exists;
-
-        // do
-        //{
-            var today = DateTime.Now.ToString("yyyyMMdd");
-            var randomNum = RandomNumberGenerator.GetInt32(100, 100000).ToString("D5");
-            code = $"TTINV-{today}-{randomNum}";
-            // exists = await _context.Invoices.AnyAsync(i => i.InvCode == code);
-        //} 
-        // while (exists);
+        var today = DateTime.Now.ToString("yyyyMMdd");
+        var randomNum = RandomNumberGenerator.GetInt32(100, 100000).ToString("D5");
+        var code = $"TTORD-{today}-{randomNum}";
 
         return code;
     }
@@ -54,10 +45,10 @@ public class Order
        {
            OrderCode = UniqueOrderCode(),
            Name = product.Name,
+           ProductId = product.ProductId,
            Quantity = quantity,
            UnitPrice = product.UnitPrice,
-           LinePrice = quantity * product.UnitPrice,
-           Bill = LinePrice * Orders.Count
+           LinePrice = quantity * product.UnitPrice
        };
    }
 }

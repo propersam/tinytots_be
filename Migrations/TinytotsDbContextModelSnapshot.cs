@@ -24,66 +24,74 @@ namespace Tinytots.Migrations
 
             modelBuilder.Entity("Tinytots.Models.Category", b =>
                 {
-                    b.Property<int>("Id")
+                    b.Property<int>("CategoryId")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("int");
 
-                    MySqlPropertyBuilderExtensions.UseMySqlIdentityColumn(b.Property<int>("Id"));
+                    MySqlPropertyBuilderExtensions.UseMySqlIdentityColumn(b.Property<int>("CategoryId"));
 
                     b.Property<string>("Name")
                         .IsRequired()
                         .HasMaxLength(20)
                         .HasColumnType("varchar(20)");
 
-                    b.HasKey("Id");
+                    b.HasKey("CategoryId");
 
                     b.ToTable("Categories");
                 });
 
             modelBuilder.Entity("Tinytots.Models.Invoice", b =>
                 {
-                    b.Property<int>("Id")
+                    b.Property<int>("InvId")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("int");
 
-                    MySqlPropertyBuilderExtensions.UseMySqlIdentityColumn(b.Property<int>("Id"));
+                    MySqlPropertyBuilderExtensions.UseMySqlIdentityColumn(b.Property<int>("InvId"));
 
-                    b.Property<string>("Code")
-                        .HasMaxLength(2147483647)
+                    b.Property<string>("InvCode")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("varchar(20)");
+
+                    b.Property<decimal>("InvoiceBill")
+                        .HasPrecision(20, 2)
+                        .HasColumnType("decimal(20,2)");
+
+                    b.Property<string>("Status")
+                        .IsRequired()
                         .HasColumnType("longtext");
 
-                    b.Property<DateTimeOffset>("CreatedAt")
-                        .HasColumnType("datetime(6)");
+                    b.HasKey("InvId");
 
-                    b.Property<decimal>("Price")
-                        .HasPrecision(9, 2)
-                        .HasColumnType("decimal(9,2)");
-
-                    b.Property<int>("Status")
-                        .HasColumnType("int");
-
-                    b.HasKey("Id");
+                    b.HasIndex("InvCode")
+                        .IsUnique();
 
                     b.ToTable("Invoices");
                 });
 
             modelBuilder.Entity("Tinytots.Models.Order", b =>
                 {
-                    b.Property<int>("Id")
+                    b.Property<int>("OrderId")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("int");
 
-                    MySqlPropertyBuilderExtensions.UseMySqlIdentityColumn(b.Property<int>("Id"));
+                    MySqlPropertyBuilderExtensions.UseMySqlIdentityColumn(b.Property<int>("OrderId"));
 
-                    b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("datetime(6)");
+                    b.Property<int?>("InvoiceId")
+                        .HasColumnType("int");
 
-                    b.Property<string>("InvCode")
-                        .HasMaxLength(2147483647)
+                    b.Property<decimal>("LinePrice")
+                        .HasPrecision(20, 2)
+                        .HasColumnType("decimal(20,2)");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("varchar(20)");
+
+                    b.Property<string>("OrderCode")
+                        .IsRequired()
                         .HasColumnType("longtext");
-
-                    b.Property<decimal>("Price")
-                        .HasColumnType("decimal(65,30)");
 
                     b.Property<int>("ProductId")
                         .HasColumnType("int");
@@ -91,7 +99,13 @@ namespace Tinytots.Migrations
                     b.Property<int>("Quantity")
                         .HasColumnType("int");
 
-                    b.HasKey("Id");
+                    b.Property<decimal>("UnitPrice")
+                        .HasPrecision(10, 2)
+                        .HasColumnType("decimal(10,2)");
+
+                    b.HasKey("OrderId");
+
+                    b.HasIndex("InvoiceId");
 
                     b.HasIndex("ProductId");
 
@@ -100,32 +114,19 @@ namespace Tinytots.Migrations
 
             modelBuilder.Entity("Tinytots.Models.Product", b =>
                 {
-                    b.Property<int>("Id")
+                    b.Property<int>("ProductId")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("int");
 
-                    MySqlPropertyBuilderExtensions.UseMySqlIdentityColumn(b.Property<int>("Id"));
-
-                    b.Property<int>("AgeGroup")
-                        .HasColumnType("int");
-
-                    b.Property<int>("CategoryId")
-                        .HasColumnType("int");
+                    MySqlPropertyBuilderExtensions.UseMySqlIdentityColumn(b.Property<int>("ProductId"));
 
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("datetime(6)");
-
-                    b.Property<int>("Gender")
-                        .HasColumnType("int");
 
                     b.Property<string>("Name")
                         .IsRequired()
                         .HasMaxLength(25)
                         .HasColumnType("varchar(25)");
-
-                    b.Property<decimal>("Price")
-                        .HasPrecision(10, 2)
-                        .HasColumnType("decimal(10,2)");
 
                     b.Property<int>("Quantity")
                         .HasColumnType("int");
@@ -133,9 +134,11 @@ namespace Tinytots.Migrations
                     b.Property<int>("SubCategoryId")
                         .HasColumnType("int");
 
-                    b.HasKey("Id");
+                    b.Property<decimal>("UnitPrice")
+                        .HasPrecision(10, 2)
+                        .HasColumnType("decimal(10,2)");
 
-                    b.HasIndex("CategoryId");
+                    b.HasKey("ProductId");
 
                     b.HasIndex("SubCategoryId");
 
@@ -144,11 +147,11 @@ namespace Tinytots.Migrations
 
             modelBuilder.Entity("Tinytots.Models.SubCategory", b =>
                 {
-                    b.Property<int>("Id")
+                    b.Property<int>("SubCategoryId")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("int");
 
-                    MySqlPropertyBuilderExtensions.UseMySqlIdentityColumn(b.Property<int>("Id"));
+                    MySqlPropertyBuilderExtensions.UseMySqlIdentityColumn(b.Property<int>("SubCategoryId"));
 
                     b.Property<int>("CategoryId")
                         .HasColumnType("int");
@@ -158,7 +161,7 @@ namespace Tinytots.Migrations
                         .HasMaxLength(15)
                         .HasColumnType("varchar(15)");
 
-                    b.HasKey("Id");
+                    b.HasKey("SubCategoryId");
 
                     b.HasIndex("CategoryId");
 
@@ -167,30 +170,28 @@ namespace Tinytots.Migrations
 
             modelBuilder.Entity("Tinytots.Models.Order", b =>
                 {
+                    b.HasOne("Tinytots.Models.Invoice", "Invoice")
+                        .WithMany("Orders")
+                        .HasForeignKey("InvoiceId");
+
                     b.HasOne("Tinytots.Models.Product", "Product")
                         .WithMany()
                         .HasForeignKey("ProductId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
+                    b.Navigation("Invoice");
+
                     b.Navigation("Product");
                 });
 
             modelBuilder.Entity("Tinytots.Models.Product", b =>
                 {
-                    b.HasOne("Tinytots.Models.Category", "Category")
-                        .WithMany("Products")
-                        .HasForeignKey("CategoryId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
                     b.HasOne("Tinytots.Models.SubCategory", "SubCategory")
                         .WithMany()
                         .HasForeignKey("SubCategoryId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
-
-                    b.Navigation("Category");
 
                     b.Navigation("SubCategory");
                 });
@@ -198,7 +199,7 @@ namespace Tinytots.Migrations
             modelBuilder.Entity("Tinytots.Models.SubCategory", b =>
                 {
                     b.HasOne("Tinytots.Models.Category", "Category")
-                        .WithMany("SubCategories")
+                        .WithMany("SubCategory")
                         .HasForeignKey("CategoryId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
@@ -208,9 +209,12 @@ namespace Tinytots.Migrations
 
             modelBuilder.Entity("Tinytots.Models.Category", b =>
                 {
-                    b.Navigation("Products");
+                    b.Navigation("SubCategory");
+                });
 
-                    b.Navigation("SubCategories");
+            modelBuilder.Entity("Tinytots.Models.Invoice", b =>
+                {
+                    b.Navigation("Orders");
                 });
 #pragma warning restore 612, 618
         }
