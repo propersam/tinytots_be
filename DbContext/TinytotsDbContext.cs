@@ -40,5 +40,6 @@ namespace Tinytots.DbContext
         public DbSet<Category> Categories { get; set; }
         public DbSet<SubCategory> SubCategories { get; set; }
         public DbSet<Invoice> Invoices { get; set; }
+        public DbSet<AdminUser> AdminUsers { get; set; }
     }
 }

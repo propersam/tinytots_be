@@ -4,7 +4,7 @@ namespace Tinytots.Models;
 
 public class Category
 {
-    [Key] public int CategoryId { get; set; }
+    [Key] public int CategoryId { get; init; }
 
     [MaxLength(20)]
     public required string Name { get; set; }

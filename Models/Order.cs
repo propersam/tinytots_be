@@ -9,6 +9,7 @@ public class Order
 {
     [Key] public int OrderId { get; init; }
 
+    [MaxLength(20)]
     public string OrderCode { get; set; } = string.Empty;
 
     [MaxLength(20)]

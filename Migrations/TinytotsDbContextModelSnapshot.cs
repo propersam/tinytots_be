@@ -22,6 +22,34 @@ namespace Tinytots.Migrations
 
             MySqlModelBuilderExtensions.AutoIncrementColumns(modelBuilder);
 
+            modelBuilder.Entity("Tinytots.Models.AdminUser", b =>
+                {
+                    b.Property<int>("AdminUserId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    MySqlPropertyBuilderExtensions.UseMySqlIdentityColumn(b.Property<int>("AdminUserId"));
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<string>("Email")
+                        .IsRequired()
+                        .HasColumnType("longtext");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasColumnType("longtext");
+
+                    b.Property<string>("PasswordHash")
+                        .IsRequired()
+                        .HasColumnType("longtext");
+
+                    b.HasKey("AdminUserId");
+
+                    b.ToTable("AdminUsers");
+                });
+
             modelBuilder.Entity("Tinytots.Models.Category", b =>
                 {
                     b.Property<int>("CategoryId")
@@ -91,7 +119,8 @@ namespace Tinytots.Migrations
 
                     b.Property<string>("OrderCode")
                         .IsRequired()
-                        .HasColumnType("longtext");
+                        .HasMaxLength(20)
+                        .HasColumnType("varchar(20)");
 
                     b.Property<int>("ProductId")
                         .HasColumnType("int");

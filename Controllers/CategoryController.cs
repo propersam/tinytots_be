@@ -68,7 +68,7 @@ namespace Tinytots.Controllers
 
             try
             {
-                Regex regex = new Regex(@"^[a-zA-Z0-9 ]*$");
+                var regex = new Regex(@"^[a-zA-Z0-9 ]*$");
                 bool exists = await _context.Categories.AnyAsync(c => c.Name.ToLower() == category.Name.ToLower());
                 if (exists)
                 {
@@ -154,7 +154,7 @@ namespace Tinytots.Controllers
                     return NotFound($"Category with Id {id} was not found");
                 }
 
-                // Check if category has associated subcategories
+                // Check if the category has associated subcategories
                 if (category.SubCategory != null && category.SubCategory.Count > 0)
                 {
                     return Conflict($"Cannot delete category '{category.Name}' because it has {category.SubCategory.Count} associated subcategories. Delete the subcategories first.");

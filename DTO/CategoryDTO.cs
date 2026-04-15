@@ -1,4 +1,3 @@
-using Tinytots.Models;
 
 namespace Tinytots.DTO;
 

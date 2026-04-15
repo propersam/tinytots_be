@@ -1,6 +1,10 @@
+using System.Text;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using Tinytots.DbContext;
+using Tinytots.Models;
 
 WebApplicationBuilder builder = WebApplication.CreateBuilder(args);
 
@@ -27,6 +31,32 @@ builder.Services.AddSwaggerGen(options =>
             Email = "support@tinytots.com"
         }
     });
+
+    // ✅ Tells Swagger to show the Authorize button and accept Bearer tokens
+    options.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
+    {
+        Name = "Authorization",
+        Type = SecuritySchemeType.Http,
+        Scheme = "Bearer",
+        BearerFormat = "JWT",
+        In = ParameterLocation.Header,
+        Description = "Enter your JWT token. Example: Bearer eyJhbGci..."
+    });
+
+    options.AddSecurityRequirement(new OpenApiSecurityRequirement
+    {
+        {
+            new OpenApiSecurityScheme
+            {
+                Reference = new OpenApiReference
+                {
+                    Type = ReferenceType.SecurityScheme,
+                    Id = "Bearer"
+                }
+            },
+            Array.Empty<string>()
+        }
+    });
 });
 
 // Configure Database
@@ -35,6 +65,26 @@ builder.Services.AddDbContext<TinytotsDbContext>(options =>
     string? connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
     options.UseMySql(connectionString, ServerVersion.AutoDetect(connectionString));
 });
+
+// ✅ Configure JWT Authentication
+builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
+    .AddJwtBearer(options =>
+    {
+        options.TokenValidationParameters = new TokenValidationParameters
+        {
+            ValidateIssuer = true,
+            ValidateAudience = true,
+            ValidateLifetime = true,
+            ValidateIssuerSigningKey = true,
+            ValidIssuer = builder.Configuration["Jwt:Issuer"],
+            ValidAudience = builder.Configuration["Jwt:Audience"],
+            IssuerSigningKey = new SymmetricSecurityKey(
+                Encoding.UTF8.GetBytes(builder.Configuration["Jwt:Key"]!)
+            )
+        };
+    });
+
+builder.Services.AddAuthorization();
 
 // Add CORS
 builder.Services.AddCors(options =>
@@ -56,14 +106,35 @@ if (app.Environment.IsDevelopment() || app.Environment.IsProduction())
     app.UseSwaggerUI(options =>
     {
         options.SwaggerEndpoint("/swagger/v1/swagger.json", "Tinytots API V1");
-        options.RoutePrefix = string.Empty; // Set Swagger UI at the app's root
+        options.RoutePrefix = string.Empty;
         options.DocumentTitle = "Tinytots API Documentation";
     });
 }
 
 app.UseHttpsRedirection();
 app.UseCors("AllowAll");
+app.UseAuthentication(); // ✅ Must come before UseAuthorization
 app.UseAuthorization();
 app.MapControllers();
+
+// ✅ Seed admin user before app starts
+using (IServiceScope scope = app.Services.CreateScope())
+{
+    TinytotsDbContext context = scope.ServiceProvider.GetRequiredService<TinytotsDbContext>();
+
+    if (!context.AdminUsers.Any())
+    {
+        context.AdminUsers.Add(new AdminUser
+        {
+            Name = "Admin",
+            Email = "admin@tovaluxeltd.com",
+            PasswordHash = BCrypt.Net.BCrypt.HashPassword("Qwerty123"),
+            CreatedAt = DateTime.UtcNow
+        });
+
+        context.SaveChanges();
+    }
+}
+
 
 app.Run();
