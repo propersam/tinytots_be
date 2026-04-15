@@ -12,14 +12,14 @@ namespace Tinytots.DbContext
         }
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
-            foreach (var entityType in modelBuilder.Model.GetEntityTypes())
+            foreach (Microsoft.EntityFrameworkCore.Metadata.IMutableEntityType entityType in modelBuilder.Model.GetEntityTypes())
             {
-                foreach (var property in entityType.GetProperties())
+                foreach (Microsoft.EntityFrameworkCore.Metadata.IMutableProperty property in entityType.GetProperties())
                 {
                     if (property.ClrType.IsEnum)
                     {
                         // Create the right converter type for this enum
-                        var converterType = typeof(EnumToStringConverter<>).MakeGenericType(property.ClrType);
+                        Type converterType = typeof(EnumToStringConverter<>).MakeGenericType(property.ClrType);
                         var converter = (ValueConverter)Activator.CreateInstance(converterType, (ConverterMappingHints?)null)!;
 
                         property.SetValueConverter(converter);
@@ -30,9 +30,9 @@ namespace Tinytots.DbContext
                 .HasIndex(i => i.InvCode)
                 .IsUnique();
 
-            
+
         }
-       
+
         // Define tables
 
         public DbSet<Product> Products { get; set; }
@@ -40,5 +40,6 @@ namespace Tinytots.DbContext
         public DbSet<Category> Categories { get; set; }
         public DbSet<SubCategory> SubCategories { get; set; }
         public DbSet<Invoice> Invoices { get; set; }
+        public DbSet<AdminUser> AdminUsers { get; set; }
     }
 }

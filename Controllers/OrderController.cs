@@ -7,85 +7,165 @@ using Tinytots.Models;
 
 
 namespace Tinytots.Controllers
- {
+{
     [ApiController]
     [Route("api/[controller]")]
     public class OrderController : ControllerBase
     {
-        private readonly TinytotsDbContext  _context;
+        private readonly TinytotsDbContext _context;
 
         public OrderController(TinytotsDbContext context)
         {
             _context = context;
         }
 
-        [HttpPost("Create")]
+        [HttpGet]
+        public async Task<IActionResult> GetAllOrders()
+        {
+            try
+            {
+                List<Order> orders = await _context.Orders
+                    .Include(o => o.Product)
+                    .Include(o => o.Invoice)
+                    .ToListAsync();
+
+                return Ok(orders);
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine(e);
+                return StatusCode(500, "An unexpected error occurred while processing your request.");
+            }
+        }
+
+        [HttpGet("{id}")]
+        public async Task<IActionResult> GetOrderById(int id)
+        {
+            try
+            {
+                Order? order = await _context.Orders
+                    .Include(o => o.Product)
+                    .FirstOrDefaultAsync(o => o.OrderId == id);
+
+                if (order == null)
+                {
+                    return NotFound($"Order with Id {id} was not found");
+                }
+
+                return Ok(order);
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine(e);
+                return StatusCode(500, "An unexpected error occurred while processing your request.");
+            }
+        }
+
+        [HttpPost]
         public async Task<IActionResult> CreateOrder(OrderCreateDTO order)
         {
-           
             try
-            { 
-                //Find the product we're ordering by id
-                var product = await _context.Products.FindAsync(order.ProductId); 
-                
+            {
+                Product? product = await _context.Products.FindAsync(order.ProductId);
+
                 if (product == null)
                 {
-                    return NotFound("Product not found");
+                    return NotFound($"Product with Id {order.ProductId} not found");
                 }
-                //if it exists, create a new order
-                var newOrder = new Order().CreateOrder(product , order.Quantity);
-                await _context.Orders.AddAsync(newOrder);
-                var req = await _context.SaveChangesAsync();
 
+                Order newOrder = new Order().CreateOrder(product, order.Quantity);
+                await _context.Orders.AddAsync(newOrder);
+                int req = await _context.SaveChangesAsync();
+
+                if (req > 0)
+                {
+                    return CreatedAtAction(nameof(GetOrderById),
+                        new { id = newOrder.OrderId },
+                        new
+                        {
+                            Message = $"Order for {product.Name} created successfully",
+                            Order = newOrder
+                        });
+                }
+
+                return BadRequest("Order was not created");
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine(e);
+                return StatusCode(500, "An unexpected error occurred while processing your request.");
+            }
+        }
+
+        [HttpPatch("{id}")]
+        public async Task<IActionResult> UpdateOrder(int id, OrderCreateDTO orderUpdate)
+        {
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
+
+            try
+            {
+                Order? order = await _context.Orders
+                    .Include(o => o.Product)
+                    .FirstOrDefaultAsync(o => o.OrderId == id);
+
+                if (order == null)
+                {
+                    return NotFound($"Order with Id {id} was not found");
+                }
+
+                // Update quantity and recalculate line price
+                order.Quantity = orderUpdate.Quantity;
+                order.LinePrice = orderUpdate.Quantity * order.UnitPrice;
+
+                int req = await _context.SaveChangesAsync();
                 if (req > 0)
                 {
                     return Ok(new
                     {
-                        message = $"Order for {product.Name} has been created successfully",
-                        Data = newOrder
+                        Message = "Order updated successfully",
+                        Order = order
                     });
                 }
-                
-                return BadRequest("Order not created");
+
+                return BadRequest("Order was not updated");
             }
-            
             catch (Exception e)
             {
                 Console.WriteLine(e);
-                throw;
+                return StatusCode(500, "An unexpected error occurred while processing your request.");
             }
         }
 
-        // [HttpPatch("Update/{OrderUpdateDTO.OrderId}")]
-        // public async Task<IActionResult> UpdateOrder(OrderUpdateDTO order)
-        // {
-        //     try
-        //     {
-        //        var _order = await _context.Orders.FindAsync(order.OrderId);
-        //        if (_order == null)
-        //        {
-        //            return NotFound("Order not found");
-        //        }
-        //        
-        //        _order.Quantity = order.Quantity;
-        //        _order.LinePrice = order.Quantity * _order.UnitPrice;
-        //        
-        //        var req = await _context.SaveChangesAsync();
-        //        if (req > 0)
-        //        {
-        //            return Ok("Order Quantity updated successfully");
-        //        } 
-        //        return BadRequest("Order not updated");
-        //     }
-        //     
-        //     catch (Exception e)
-        //     {
-        //         Console.WriteLine(e);
-        //         throw;
-        //     }
-        // }
-        //
-        //
-        
+        [HttpDelete("{id}")]
+        public async Task<IActionResult> DeleteOrder(int id)
+        {
+            try
+            {
+                Order? order = await _context.Orders.FindAsync(id);
+
+                if (order == null)
+                {
+                    return NotFound($"Order with Id {id} was not found");
+                }
+
+                _context.Orders.Remove(order);
+                int req = await _context.SaveChangesAsync();
+
+                if (req > 0)
+                {
+                    return Ok($"Order with Id {id} deleted successfully");
+                }
+
+                return BadRequest($"Order with Id {id} was not deleted");
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine(e);
+                return StatusCode(500, "An unexpected error occurred while processing your request.");
+            }
+        }
     }
 }
